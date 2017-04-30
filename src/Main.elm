@@ -3,19 +3,17 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onSubmit, onInput)
+import Firebase
+import Firebase.Database
+import Firebase.Database.Types
 
 
 type alias Model =
-    { chat : List Chat
+    { app : Firebase.App
+    , db : Firebase.Database.Types.Database
+    , chat : List Chat
     , currentText : String
     }
-
-
-intitialModel : Model
-intitialModel =
-    Model
-        [ { time = "", text = "One", user = "" } ]
-        ""
 
 
 type alias Chat =
@@ -25,14 +23,41 @@ type alias Chat =
     }
 
 
+type alias Config =
+    { apiKey : String
+    , databaseURL : String
+    , authDomain : String
+    , storageBucket : String
+    , messagingSenderId : String
+    }
+
+
 type Msg
     = Submit
     | TextChange String
 
 
-init : ( Model, Cmd Msg )
-init =
-    intitialModel ! []
+init : Config -> ( Model, Cmd Msg )
+init flags =
+    let
+        app : Firebase.App
+        app =
+            Firebase.init
+                { apiKey = flags.apiKey
+                , databaseURL = flags.databaseURL
+                , authDomain = flags.authDomain
+                , storageBucket = flags.storageBucket
+                , messagingSenderId = flags.messagingSenderId
+                }
+
+        db : Firebase.Database.Types.Database
+        db =
+            Firebase.Database.init app
+
+        intitialModel =
+            Model app db [] ""
+    in
+        intitialModel ! []
 
 
 view : Model -> Html Msg
@@ -82,9 +107,9 @@ update msg model =
                 { model | chat = newChat :: model.chat, currentText = "" } ! []
 
 
-main : Program Never Model Msg
+main : Program Config Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , view = view
         , subscriptions = subscriptions

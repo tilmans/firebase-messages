@@ -5,7 +5,8 @@
     "start": "firebase serve",
     "build": "webpack",
     "buildWatch": "webpack --watch",
-    "deploy": "firebase deploy"
+    "deploy": "firebase deploy",
+    "install-firebase": "elm-github-install"
   },
   "devDependencies": {
     "eslint": "^3.18.0",
@@ -22,27 +23,17 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "copy-webpack-plugin": "^3.0.1",
     "webpack-dev-server": "^1.14.1",
-    "webpack-merge": "^0.14.1"
-  },
-  "eslintConfig": {
-    "extends": "airbnb-base",
-    "rules": {
-      "arrow-parens": ["error", "as-needed"],
-      "comma-dangle": ["error", "always-multiline"],
-      "import/no-dynamic-require": "off",
-      "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
-      "max-len": ["error", 240],
-      "no-param-reassign": ["error", { "props": false }]
-    }
+    "webpack-merge": "^0.14.1",
+    "elm-github-install": "0.3.1"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:RomansBermans/firebase-messages.git"
+    "url": "git@github.com:tilmans/firebase-messages.git"
   },
   "bugs": {
-    "url": "https://github.com/RomansBermans/firebase-messages/issues"
+    "url": "https://github.com/tilmans/firebase-messages/issues"
   },
-  "homepage": "https://github.com/RomansBermans/firebase-messages",
-  "author": "Romans Bermans <romans.bermans@gmail.com>",
+  "homepage": "https://github.com/tilmans/firebase-messages",
+  "author": "Tilman Schlenker <tilman@mailbox.org>",
   "license": "ISC"
 }
