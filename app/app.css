@@ -45,3 +45,7 @@ body {
     height: 64px;
     background-color: green;
 }
+
+.sending {
+    background-color: orange;
+}

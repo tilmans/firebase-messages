@@ -5,6 +5,7 @@ var HtmlWebpackPlugin = require( 'html-webpack-plugin' );
 var autoprefixer      = require( 'autoprefixer' );
 var ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
 var CopyWebpackPlugin = require( 'copy-webpack-plugin' );
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 
 // detemine build env
 var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'development';
@@ -33,6 +34,8 @@ var commonConfig = {
   },
 
   plugins: [
+      new CleanWebpackPlugin(["dist"]),
+      
       new CopyWebpackPlugin([
           {
               from: 'app'
