@@ -3,7 +3,7 @@
     "rules": "database/rules.bolt"
   },
   "hosting": {
-    "public": "app",
+    "public": "dist",
     "rewrites": [
       {
         "source": "**",

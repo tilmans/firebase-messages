@@ -20,6 +20,33 @@ body {
   opacity: 0;
 }
 
+#elm-mdl-layout-main {
+    height: 100%;
+}
+
+.maincontainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: red;
+}
+
+.header {
+    height: 64px;
+    background-color: yellow;
+}
+
+.listview {
+    flex-grow: 1;
+    overflow: scroll;
+    background-color: blue;
+}
+
+.footer {
+    height: 64px;
+    background-color: green;
+}
+
 
 /* ********* STYLE APP ********* */
 

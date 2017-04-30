@@ -5,12 +5,12 @@
 
 
 const config = {
-  apiKey: 'AIzaSyBbtZEaaqqhvp5r7eYbxaEigCT1CInXedM',
-  authDomain: 'prototype-f8013.firebaseapp.com',
-  databaseURL: 'https://prototype-f8013.firebaseio.com',
-  projectId: 'prototype-f8013',
-  storageBucket: 'prototype-f8013.appspot.com',
-  messagingSenderId: '1077602867778',
+    apiKey: "AIzaSyAzQQWZs1YgMCtHOV5ycESdRqAGfE9bppY",
+    authDomain: "funproject-809c6.firebaseapp.com",
+    databaseURL: "https://funproject-809c6.firebaseio.com",
+    projectId: "funproject-809c6",
+    storageBucket: "funproject-809c6.appspot.com",
+    messagingSenderId: "444607959661"
 };
 
 firebase.initializeApp(config);
