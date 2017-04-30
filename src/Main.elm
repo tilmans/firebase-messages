@@ -2,17 +2,11 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onSubmit)
-import Material
-import Material.List as ML
-import Material.Textfield as MT
-import Material.Options as Options
-import Material.Layout as Layout
+import Html.Events exposing (onSubmit, onInput)
 
 
 type alias Model =
-    { mdl : Material.Model
-    , chat : List Chat
+    { chat : List Chat
     , currentText : String
     }
 
@@ -20,7 +14,6 @@ type alias Model =
 intitialModel : Model
 intitialModel =
     Model
-        Material.model
         [ { time = "", text = "One", user = "" } ]
         ""
 
@@ -33,9 +26,8 @@ type alias Chat =
 
 
 type Msg
-    = Mdl (Material.Msg Msg)
-    | Upd0 String
-    | Submit
+    = Submit
+    | TextChange String
 
 
 init : ( Model, Cmd Msg )
@@ -45,56 +37,39 @@ init =
 
 view : Model -> Html Msg
 view model =
-    Layout.render Mdl
-        model.mdl
-        [ Layout.fixedHeader ]
-        { header = [ text "Header" ]
-        , drawer = []
-        , tabs = ( [], [] )
-        , main = (mainbody model)
-        }
-
-
-mainbody : Model -> List (Html Msg)
-mainbody model =
-    [ div [ class "maincontainer" ]
-        [ div [ class "listview" ]
-            [ ML.ul []
-                (List.map renderChatItems (List.reverse model.chat))
-            ]
+    div [ class "maincontainer" ]
+        [ div [ class "header" ] []
+        , div [ class "listview" ]
+            (List.map renderListItem model.chat)
         , div [ class "footer" ]
             [ Html.form [ onSubmit Submit ]
-                [ (MT.render Mdl [ 0 ] model.mdl)
-                    [ Options.onInput Upd0
-                    , MT.autofocus
-                    , MT.value model.currentText
-                    , MT.label "Chat"
+                [ input
+                    [ type_ "text"
+                    , onInput TextChange
+                    , value model.currentText
+                    , autofocus True
                     ]
                     []
                 ]
             ]
         ]
-    ]
 
 
-renderChatItems : Chat -> Html Msg
-renderChatItems chat =
-    ML.li [] [ ML.content [] [ text chat.text ] ]
+renderListItem : Chat -> Html Msg
+renderListItem chat =
+    div [] [ text chat.text ]
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Layout.subs Mdl model.mdl
+    Sub.none
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Mdl message ->
-            Material.update Mdl message model
-
-        Upd0 string ->
-            { model | currentText = string } ! []
+        TextChange text ->
+            { model | currentText = text } ! []
 
         Submit ->
             let
