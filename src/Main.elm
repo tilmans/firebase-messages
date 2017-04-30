@@ -146,10 +146,15 @@ view : Model -> Html Msg
 view model =
     div [ class "maincontainer" ]
         [ div [ class "header" ]
-            [ div [ onClick Delete ] [ text "X" ] ]
+            [ div [ class "title" ] [ text "Elm Messages" ]
+            , div [ class "deleteButton", onClick Delete ] [ text "remove" ]
+            ]
         , div [ class "listview" ]
             (List.map renderListItem model.chat)
-        , div [ class "footer" ]
+        , div
+            [ class "footer"
+            , classList [ ( "sending", model.status == Sending ) ]
+            ]
             [ Html.form [ onSubmit Submit ]
                 [ input
                     [ type_ "text"
@@ -157,9 +162,9 @@ view model =
                     , value model.currentText
                     , autofocus True
                     , readonly (model.status == Sending)
-                    , classList [ ( "sending", model.status == Sending ) ]
                     ]
                     []
+                , div [ class "submitarrow", onClick Submit ] [ text "arrow_upward" ]
                 ]
             ]
         ]
