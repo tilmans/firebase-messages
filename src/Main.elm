@@ -11,7 +11,9 @@ import Firebase.Database.Snapshot
 import Firebase.Errors
 import Json.Decode
 import Json.Encode
+import Time
 import Task
+import Dom
 
 
 type alias Model =
@@ -20,11 +22,12 @@ type alias Model =
     , chat : List Chat
     , currentText : String
     , status : Status
+    , time : Float
     }
 
 
 type alias Chat =
-    { time : Int
+    { time : Float
     , text : String
     }
 
@@ -51,6 +54,8 @@ type Msg
     | ChatSent (Result Firebase.Errors.Error ())
     | Delete
     | Deleted (Result Firebase.Errors.Error ())
+    | UpdateTime Time.Time
+    | Focused (Result Dom.Error ())
 
 
 init : Config -> ( Model, Cmd Msg )
@@ -71,7 +76,7 @@ init flags =
             Firebase.Database.init app
 
         intitialModel =
-            Model app db [] "" Success
+            Model app db [] "" Success 0
     in
         intitialModel ! []
 
@@ -81,65 +86,81 @@ subscriptions model =
     let
         ref =
             model.db |> Firebase.Database.ref (Just "messages")
+
+        refSub =
+            Firebase.Database.Reference.on "value" ref ChatUpdate
+
+        timeSub =
+            Time.every Time.second UpdateTime
     in
-        Firebase.Database.Reference.on "value" ref ChatUpdate
+        Sub.batch [ refSub, timeSub ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        TextChange text ->
-            { model | currentText = text } ! []
+    let
+        focus =
+            Task.attempt Focused (Dom.focus "inputfield")
+    in
+        case msg of
+            TextChange text ->
+                { model | currentText = text } ! []
 
-        Submit ->
-            let
-                newChat =
-                    { time = 0
-                    , text = model.currentText
-                    }
+            Submit ->
+                let
+                    newChat =
+                        { time = 0
+                        , text = model.currentText
+                        }
 
-                command =
-                    model.db
-                        |> Firebase.Database.ref (Just "messages")
-                        |> Firebase.Database.Reference.push
-                        |> Firebase.Database.Reference.set (jsonEncodeChat newChat)
-                        |> Task.attempt ChatSent
-            in
-                ( { model | status = Sending }, command )
+                    command =
+                        model.db
+                            |> Firebase.Database.ref (Just "messages")
+                            |> Firebase.Database.Reference.push
+                            |> Firebase.Database.Reference.set (jsonEncodeChat newChat)
+                            |> Task.attempt ChatSent
+                in
+                    { model | status = Sending } ! [ command, focus ]
 
-        ChatUpdate snapshot ->
-            let
-                decoded =
-                    Json.Decode.decodeValue jsonDecodeChatList (Firebase.Database.Snapshot.value snapshot)
+            ChatUpdate snapshot ->
+                let
+                    decoded =
+                        Json.Decode.decodeValue jsonDecodeChatList (Firebase.Database.Snapshot.value snapshot)
 
-                chatList =
-                    case decoded of
-                        Err err ->
-                            []
+                    chatList =
+                        case decoded of
+                            Err err ->
+                                []
 
-                        Ok serverChat ->
-                            List.map (\( id, c ) -> c) serverChat
-            in
-                { model | chat = chatList } ! []
+                            Ok serverChat ->
+                                List.map (\( id, c ) -> c) serverChat
+                in
+                    { model | chat = chatList } ! []
 
-        ChatSent (Err err) ->
-            { model | status = Failed } ! []
+            ChatSent (Err err) ->
+                { model | status = Failed } ! []
 
-        ChatSent (Ok ()) ->
-            { model | currentText = "", status = Success } ! []
+            ChatSent (Ok ()) ->
+                { model | currentText = "", status = Success } ! []
 
-        Delete ->
-            let
-                command =
-                    model.db
-                        |> Firebase.Database.ref (Just "messages")
-                        |> Firebase.Database.Reference.set Json.Encode.null
-                        |> Task.attempt Deleted
-            in
-                model ! [ command ]
+            Delete ->
+                let
+                    command =
+                        model.db
+                            |> Firebase.Database.ref (Just "messages")
+                            |> Firebase.Database.Reference.set Json.Encode.null
+                            |> Task.attempt Deleted
+                in
+                    model ! [ command, focus ]
 
-        Deleted _ ->
-            model ! []
+            Deleted _ ->
+                model ! []
+
+            UpdateTime time ->
+                { model | time = time } ! []
+
+            Focused _ ->
+                model ! []
 
 
 view : Model -> Html Msg
@@ -151,7 +172,7 @@ view model =
             ]
         , div [ class "listarea" ]
             [ div [ class "listview" ]
-                (List.map renderListItem (List.reverse model.chat))
+                (List.map (renderListItem model.time) (List.reverse model.chat))
             ]
         , div
             [ class "footer"
@@ -160,6 +181,7 @@ view model =
             [ Html.form [ onSubmit Submit ]
                 [ input
                     [ type_ "text"
+                    , id "inputfield"
                     , onInput TextChange
                     , value model.currentText
                     , autofocus True
@@ -172,9 +194,12 @@ view model =
         ]
 
 
-renderListItem : Chat -> Html Msg
-renderListItem chat =
-    div [] [ text chat.text ]
+renderListItem : Time.Time -> Chat -> Html Msg
+renderListItem time chat =
+    div [ class "listviewitem" ]
+        [ div [ class "listview-maintext" ] [ text chat.text ]
+        , div [ class "listview-subtext" ] [ text (prettyTime time chat.time) ]
+        ]
 
 
 main : Program Config Model Msg
@@ -199,7 +224,7 @@ jsonDecodeChatList =
 jsonDecodeChat : Json.Decode.Decoder Chat
 jsonDecodeChat =
     Json.Decode.map2 Chat
-        (Json.Decode.field "created" Json.Decode.int)
+        (Json.Decode.field "created" Json.Decode.float)
         (Json.Decode.field "text" Json.Decode.string)
 
 
@@ -209,3 +234,21 @@ jsonEncodeChat chat =
         [ ( "created", Json.Encode.object [ ( ".sv", Json.Encode.string "timestamp" ) ] )
         , ( "text", Json.Encode.string chat.text )
         ]
+
+
+prettyTime : Time.Time -> Time.Time -> String
+prettyTime now time =
+    let
+        ago =
+            (Basics.max 0 (now - time)) / 1000
+    in
+        if ago >= 86400 then
+            (toString (floor (ago / 86400))) ++ "d ago"
+        else if ago >= 3600 then
+            (toString (floor (ago / 3600))) ++ "h ago"
+        else if ago >= 60 then
+            (toString (floor (ago / 60))) ++ "m ago"
+        else if (floor ago) > 0 then
+            (toString (floor ago)) ++ "s ago"
+        else
+            "Now"

@@ -5,7 +5,7 @@
     "start": "firebase serve",
     "build": "webpack",
     "buildWatch": "webpack --watch",
-    "deploy": "webpack & firebase deploy",
+    "deploy": "webpack -p && firebase deploy",
     "install-firebase": "elm-github-install"
   },
   "devDependencies": {

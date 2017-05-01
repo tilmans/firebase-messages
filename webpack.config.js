@@ -8,7 +8,7 @@ var CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 
 // detemine build env
-var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'development';
+var TARGET_ENV = process.env.npm_lifecycle_event === 'deploy' ? 'production' : 'development';
 
 // common webpack config
 var commonConfig = {
@@ -82,7 +82,7 @@ if ( TARGET_ENV === 'development' ) {
         {
           test:    /\.elm$/,
           exclude: [/elm-stuff/, /node_modules/],
-          loader:  'elm-hot!elm-webpack?verbose=true&warn=true'
+          loader:  'elm-hot!elm-webpack?debug=true&verbose=true&warn=true'
         },
         {
           test: /\.(css|scss)$/,
@@ -127,25 +127,10 @@ if ( TARGET_ENV === 'production' ) {
 
     plugins: [
       new CopyWebpackPlugin([
-          /*
-          {
-              from: 'src/models/',
-              to: 'models/'
-          },
           {
               from: 'src/db_prod.js',
               to: './db.js'
-          },
-          {
-              from: 'src/aframe-look-at-component.min.js'
-          },
-          {
-              from: 'src/style.css'
-          },
-          {
-              from: 'src/login.png'
           }
-          */
       ]),
 
       new webpack.optimize.OccurenceOrderPlugin(),
