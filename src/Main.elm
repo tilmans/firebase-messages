@@ -149,8 +149,10 @@ view model =
             [ div [ class "title" ] [ text "Elm Messages" ]
             , div [ class "deleteButton", onClick Delete ] [ text "remove" ]
             ]
-        , div [ class "listview" ]
-            (List.map renderListItem model.chat)
+        , div [ class "listarea" ]
+            [ div [ class "listview" ]
+                (List.map renderListItem (List.reverse model.chat))
+            ]
         , div
             [ class "footer"
             , classList [ ( "sending", model.status == Sending ) ]
